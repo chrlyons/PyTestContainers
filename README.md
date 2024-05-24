@@ -36,6 +36,6 @@ Liquibase is used to manage and apply database changes. Follow these steps to us
 Download and install Liquibase from the [official website](https://www.liquibase.org/download).
 
 
-### 2. Run Tsts
+### 2. Run Tests
 
 You can now run the tests in the tests/ directory
