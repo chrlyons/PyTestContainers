@@ -1,0 +1,48 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1
+      author: Larry
+      changes:
+        - createTable:
+            tableName: customers
+            columns:
+              - column:
+                  name: id
+                  type: serial
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: name
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: email
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+                    unique: true
+
+  - changeSet:
+      id: 2
+      author: Barry
+      changes:
+        - insert:
+            tableName: customers
+            columns:
+              - column:
+                  name: name
+                  value: TestUser1
+              - column:
+                  name: email
+                  value: testuser1@example.com
+        - insert:
+            tableName: customers
+            columns:
+              - column:
+                  name: name
+                  value: TestUser2
+              - column:
+                  name: email
+                  value: testuser2@example.com
