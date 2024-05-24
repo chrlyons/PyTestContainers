@@ -14,11 +14,7 @@ def wait_for_db(host, port, user, password, db, timeout=120):
     while time.time() - start_time < timeout:
         try:
             conn = psycopg2.connect(
-                host=host,
-                port=port,
-                user=user,
-                password=password,
-                dbname=db
+                host=host, port=port, user=user, password=password, dbname=db
             )
             conn.close()
             print("Database is ready")
@@ -73,11 +69,7 @@ def setup(postgres_container):
 
     # Wait for the database to be ready
     if not wait_for_db(
-            host=db_host,
-            port=db_port,
-            user=db_user,
-            password=db_password,
-            db=db_name
+        host=db_host, port=db_port, user=db_user, password=db_password, db=db_name
     ):
         raise Exception("Database not ready")
 
@@ -88,13 +80,15 @@ def setup(postgres_container):
         f"--url=jdbc:postgresql://{db_host}:{db_port}/{db_name}",
         f"--username={db_user}",
         f"--password={db_password}",
-        "update"
+        "update",
     ]
     attempt_count = 0
     max_attempts = 5
     while attempt_count < max_attempts:
         try:
-            result = subprocess.run(liquibase_command, check=True, capture_output=True, text=True)
+            result = subprocess.run(
+                liquibase_command, check=True, capture_output=True, text=True
+            )
             print("Liquibase Output:\n", result.stdout)
             print("Liquibase Error Output:\n", result.stderr)
             break
@@ -107,7 +101,9 @@ def setup(postgres_container):
                 raise
 
 
-@pytest.mark.parametrize("postgres_container", ["16-alpine", "15-alpine", "14-alpine"], indirect=True)
+@pytest.mark.parametrize(
+    "postgres_container", ["16-alpine", "15-alpine", "14-alpine"], indirect=True
+)
 def test_get_all_customers():
     customers.create_customer("Siva", "siva@gmail.com")
     customers.create_customer("James", "james@gmail.com")
@@ -115,7 +111,9 @@ def test_get_all_customers():
     assert len(customers_list) == 4
 
 
-@pytest.mark.parametrize("postgres_container", ["16-alpine", "15-alpine", "14-alpine"], indirect=True)
+@pytest.mark.parametrize(
+    "postgres_container", ["16-alpine", "15-alpine", "14-alpine"], indirect=True
+)
 def test_get_customer_by_email():
     customers.create_customer("John", "john@gmail.com")
     customer = customers.get_customer_by_email("john@gmail.com")
@@ -123,7 +121,9 @@ def test_get_customer_by_email():
     assert customer.email == "john@gmail.com"
 
 
-@pytest.mark.parametrize("postgres_container", ["16-alpine", "15-alpine", "14-alpine"], indirect=True)
+@pytest.mark.parametrize(
+    "postgres_container", ["16-alpine", "15-alpine", "14-alpine"], indirect=True
+)
 def test_schema_and_data():
     db_host = os.environ["DB_HOST"]
     db_port = int(os.environ["DB_PORT"])
@@ -132,11 +132,7 @@ def test_schema_and_data():
     db_name = os.environ["DB_NAME"]
 
     conn = psycopg2.connect(
-        host=db_host,
-        port=db_port,
-        user=db_user,
-        password=db_password,
-        dbname=db_name
+        host=db_host, port=db_port, user=db_user, password=db_password, dbname=db_name
     )
     cursor = conn.cursor()
 
@@ -155,7 +151,10 @@ def test_schema_and_data():
     results = cursor.fetchall()
     print("Contents of customers table:", results)
     assert len(results) == 2
-    expected_data = [("TestUser1", "testuser1@example.com"), ("TestUser2", "testuser2@example.com")]
+    expected_data = [
+        ("TestUser1", "testuser1@example.com"),
+        ("TestUser2", "testuser2@example.com"),
+    ]
     for result in results:
         assert result in expected_data
 
