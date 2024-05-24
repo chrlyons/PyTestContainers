@@ -45,8 +45,37 @@ def postgres_container(request):
     return postgres
 
 
-@pytest.fixture(scope="function", autouse=True)
+@pytest.fixture(scope="function")
 def setup(postgres_container):
+    postgres = postgres_container
+    db_host = postgres.get_container_host_ip()
+    db_port = postgres.get_exposed_port(5432)
+    db_user = "test"
+    db_password = "test"
+    db_name = "test"
+
+    os.environ["DB_HOST"] = db_host
+    os.environ["DB_PORT"] = str(db_port)
+    os.environ["DB_USERNAME"] = db_user
+    os.environ["DB_PASSWORD"] = db_password
+    os.environ["DB_NAME"] = db_name
+
+    # Print debug information
+    print(f"DB_HOST={db_host}")
+    print(f"DB_PORT={db_port}")
+    print(f"DB_USERNAME={db_user}")
+    print(f"DB_PASSWORD={db_password}")
+    print(f"DB_NAME={db_name}")
+
+    # Wait for the database to be ready
+    if not wait_for_db(
+        host=db_host, port=db_port, user=db_user, password=db_password, db=db_name
+    ):
+        raise Exception("Database not ready")
+
+
+@pytest.fixture(scope="function")
+def setup_with_liquibase(postgres_container):
     postgres = postgres_container
     db_host = postgres.get_container_host_ip()
     db_port = postgres.get_exposed_port(5432)
@@ -104,7 +133,7 @@ def setup(postgres_container):
 @pytest.mark.parametrize(
     "postgres_container", ["16-alpine", "15-alpine", "14-alpine"], indirect=True
 )
-def test_get_all_customers():
+def test_get_all_customers(setup_with_liquibase, postgres_container):
     customers.create_customer("Siva", "siva@gmail.com")
     customers.create_customer("James", "james@gmail.com")
     customers_list = customers.get_all_customers()
@@ -114,7 +143,7 @@ def test_get_all_customers():
 @pytest.mark.parametrize(
     "postgres_container", ["16-alpine", "15-alpine", "14-alpine"], indirect=True
 )
-def test_get_customer_by_email():
+def test_get_customer_by_email(setup_with_liquibase, postgres_container):
     customers.create_customer("John", "john@gmail.com")
     customer = customers.get_customer_by_email("john@gmail.com")
     assert customer.name == "John"
@@ -124,7 +153,7 @@ def test_get_customer_by_email():
 @pytest.mark.parametrize(
     "postgres_container", ["16-alpine", "15-alpine", "14-alpine"], indirect=True
 )
-def test_schema_and_data():
+def test_schema_and_data(setup_with_liquibase, postgres_container):
     db_host = os.environ["DB_HOST"]
     db_port = int(os.environ["DB_PORT"])
     db_user = os.environ["DB_USERNAME"]
